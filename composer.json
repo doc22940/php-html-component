@@ -1,0 +1,28 @@
+{
+    "name": "8fold/php-html-component",
+    "description": "A featherweight class capable of delivering a single web component, element, or entire page.",
+    "keywords": [],
+    "homepage": "https://github.com/8fold/html-php-component",
+    "type": "library",
+    "license": "MIT",
+    "authors": [{
+      "name": "Josh Bruce",
+      "email": "josh@joshuabruce.com"
+    }],
+    "require": {
+      "php": ">=7.0.0"
+    },
+    "require-dev": {
+      "phpunit/phpunit": "~5.7"
+    },
+    "autoload": {
+      "psr-4": {
+        "Eightfold\\HtmlComponent\\": "src/"
+      }
+    },
+    "autoload-dev": {
+      "psr-4": {
+        "Eightfold\\HtmlComponent\\Tests\\": "tests/"
+      }        
+    }
+}

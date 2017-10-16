@@ -6,6 +6,22 @@ While developing [8fold UI](https://ui.8fold.software) we decided to rewrite [PH
 
 ## Composer
 
+```
+$ composer require 8fold/php-html-component
+```
 
 ## Usage
 
+```php
+Eightfold\HtmlComponent\Component::build([
+    'element' => 'my-component',
+    'content' => 'Hello, World!',
+    'attributes' => [
+        'id' => 'something-unique',
+        'class' => 'my awesome styles'
+    ]
+]);
+
+// Output
+<my-component id="something-unique" clas="my awesome styles">Hello, World!</my-component>
+```

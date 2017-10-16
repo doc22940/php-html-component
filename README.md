@@ -28,3 +28,20 @@ Output:
 ```html
 <my-component id="something-unique" clas="my awesome styles">Hello, World!</my-component>
 ```
+
+Extending a known element:
+
+```php
+Eightfold\HtmlComponent\Component::build([
+    'element' => 'my-component',
+    'extends' => 'p',
+    'content' => 'Hello, World!'
+]);
+```
+
+Output:
+
+```html
+<p is="my-component">Hello, World!</p>
+```
+

@@ -12,6 +12,8 @@ $ composer require 8fold/php-html-component
 
 ## Usage
 
+There is only one public method, `build`. It accepts a configuration array.
+
 ```php
 Eightfold\HtmlComponent\Component::build([
     'element' => 'my-component',
@@ -45,3 +47,22 @@ Output:
 <p is="my-component">Hello, World!</p>
 ```
 
+The Component class only understand the following keys:
+
+ Required keys
+ 
+ - **element:** The string to place in the opening and closing tags. 
+                Ex. <html></html> or <my-component></my-component>
+ 
+ Optional keys
+ 
+ - **extends:**          Whether this element extends another, known element. Ex.
+                         <button is="my-component"></button>
+ - **role:**             The role the component plays in the document or application.
+                         Ex. <body role="application">
+ - **omit-closing-tag:** true|false (Default is false.) Whether the element has a
+                         closing tag. Ex. <html></html> versus <img>
+ - **attributes:**       Dictionary of key value pairs to place attributes inside the
+                         element. Ex. <html lang="en"></html>
+ - **content:**          string|array Accepts a single string or an array of 
+                         component configurations.

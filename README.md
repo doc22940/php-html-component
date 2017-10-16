@@ -21,7 +21,10 @@ Eightfold\HtmlComponent\Component::build([
         'class' => 'my awesome styles'
     ]
 ]);
+```
 
-// Output
+Output:
+
+```html
 <my-component id="something-unique" clas="my awesome styles">Hello, World!</my-component>
 ```

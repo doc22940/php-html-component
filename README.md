@@ -1,8 +1,10 @@
-# HTML Component by 8fold in PHP
+# 8fold Component
 
 A fetherweight class for generating predefined HTML or autonymous web components.
 
-While developing [8fold UI](https://ui.8fold.software) we decided to rewrite [PHP HTML](https://github.com/8fold/php-html). In doing so, we concetrated the heavy lifting into a single class and decided to make it into its own package.
+While developing the user interfaces for our various online applications we managed to consolidate the basic logic for generating HTML elements, web components, and complete pages of content. This consolidation resulted in the creation of a single featherweight class we call Component by 8fold, which is available via Composer and [Packagist](https://packagist.org/packages/8fold/php-html-component) and [GitHub](https://github.com/8fold/php-html-component).
+
+It is the backbone for our other web user interface packages.
 
 ## Composer
 
@@ -28,7 +30,9 @@ Eightfold\HtmlComponent\Component::build([
 Output:
 
 ```html
-<my-component id="something-unique" clas="my awesome styles">Hello, World!</my-component>
+<my-component id="something-unique" clas="my awesome styles">
+    Hello, World!
+</my-component>
 ```
 
 Extending a known element:
@@ -49,10 +53,10 @@ Output:
 
 The Component class only understands the following keys:
 
- Required keys
+ Required key
  
  - **element:** The string to place in the opening and closing tags. 
-                Ex. <html></html> or <my-component></my-component>
+                Ex. `<html></html>` or `<my-component></my-component>`
  
  Optional keys
  
@@ -82,4 +86,4 @@ The Component class is designed to be extended in order to reduce the complexity
 1. The `build` method itself. This method calls three methods in turn to generate a complete HTML string: opening, closing, and content.
 2. The `content` method is the second override point. This method focuses on the `content` key of the configuration. If the value is an array, it will call the `build` method.
 
-Therefore, it is recommended that you use your `build` override to clean up the configuration any way you see fit, then call `parent::`. Further, if you are creating a complex library of elements and components, it is recommended that you override the `content` method as well, and most likely **not** call `parent::`. See the [HTML library from 8fold](https://github.com/8fold/php-html) for a production implementation.
+Therefore, it is recommended that you use your `build` override to clean up the configuration any way you see fit, then call `parent::`. Further, if you are creating a complex library of elements and components, it is recommended that you override the `content` method as well, and most likely **not** call `parent::`. See 8fold Elements for a production implementation.

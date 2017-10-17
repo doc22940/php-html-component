@@ -2,9 +2,7 @@
 
 namespace Eightfold\HtmlComponent;
 
-/**
- * @version 1.0.0
- * 
+/** 
  * Component
  *
  * A featherweight class for generating strings for HTML, web components, and (most
@@ -15,21 +13,25 @@ namespace Eightfold\HtmlComponent;
  * Required keys
  *
  * - **element:** The string to place in the opening and closing tags. 
- *                Ex. <html></html> or <my-component></my-component>
+ *                Ex. `<html></html>` or `<my-component></my-component>`
  *
  * Optional keys
  *
  * - **extends:**          Whether this element extends another, known element. Ex.
- *                         <button is="my-component"></button>
+ *                         `<button is="my-component"></button>`
  * - **role:**             The role the component plays in the document or application.
- *                         Ex. <body role="application">
+ *                         Ex. `<body role="application">`
  * - **omit-closing-tag:** true|false (Default is false.) Whether the element has a
- *                         closing tag. Ex. <html></html> versus <img>
+ *                         closing tag. Ex. `<html></html>` versus `<img>`
  * - **attributes:**       Dictionary of key value pairs to place attributes inside the
- *                         element. Ex. <html lang="en"></html>
+ *                         element. Ex. `<html lang="en"></html>`
  * - **content:**          string|array Accepts a single string or an array of 
  *                         component configurations.
- *
+ *                         
+ * By itself, this will not save a developer time or typing when it comes to building
+ * web applications. However, the point of this class is to be extended and abstracted
+ * in order to do just that. With your extension you can build in various rules 
+ * regarding deprecated attributes, ordering of attributes within elements, and so on.
  * @example
  * 
  * ```
@@ -78,11 +80,7 @@ namespace Eightfold\HtmlComponent;
  * </html>
  * ```
  *
- * By itself, this will not save a developer time or typing when it comes to building
- * web applications. However, the point of this class is to be extended and abstracted
- * in order to do just that. With your extension you can build in various rules 
- * regarding deprecated attributes, ordering of attributes within elements, and so on.
- * 
+ * @version 1.0.0
  */
 abstract class Component
 {
@@ -150,14 +148,21 @@ abstract class Component
     {
         $html = '';
         if (isset($config['attributes']) && $attributes = $config['attributes']) {
-            $html .= ' '. implode(' ', array_map(function($key, $value) {
+            $pairs = implode(' ', array_map(function($key, $value) {
                 // Booleans can be `key` or `key="key"`
                 // HTML5 prefers just `key`.
                 if ($key == $value) {
                     return $key;
                 }
-                return $key .'="'. $value .'"';
+
+                if (strlen($value) > 0) {
+                    return $key .'="'. $value .'"';    
+                }
             }, array_keys($attributes), array_values($attributes)));
+            if (strlen($pairs) > 1) {
+                $html .= ' '. $pairs;
+
+            }
         }
         return $html;
     }

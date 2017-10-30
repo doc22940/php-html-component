@@ -85,6 +85,76 @@ namespace Eightfold\HtmlComponent;
 abstract class Component
 {
     /**
+     * Experimental:
+     * 
+     * After a while of using 8fold HTML in conjunction with 8fold Component, it seemed
+     * an alternative would be necessary. The avoidance of future annoyance by using an
+     * associative array instead of a fixed call signature did not outweigh the pain
+     * of typing the keys:
+     *
+     * ```
+     * Component::build([
+     *   'omit-end-tag' => false,
+     *   'element'      => 'my-button',
+     *   'extends'      => 'button',
+     *   'attributes'   => [
+     *     'class' => 'all-this-for-that'
+     *   ] 
+     * ]);
+     *
+     * <button is="my-button"></button>
+     * ```
+     * 
+     * Why have the above, when you can just do this?
+     *
+     * ```
+     * Component::make(true, ['class' => 'all-this-for-that'], 'my-button', 'button');
+     * ```
+     *
+     * You might be asking why have the component be after the content and attributes.
+     * It's because the habit we want to establish in the subsequent extensions is that
+     * content is first and attributes second, because the extensions handle the rest.
+     *
+     * ```
+     * Extensions::p('Hello, World!', ['id' => 'main-paragraph']);
+     *
+     * <p id="main-paragraph">Hello, World!</p>
+     * ```
+     * 
+     * @param  bool|array|string $content    If `false`, will omit the end tag. If 
+     *                                       `true` will use the end tag, but there
+     *                                       will not be anything in-between the tags.
+     *                                       If anything else (array or string), will 
+     *                                       assume component has end tag, and will be
+     *                                       used for the content between them.
+     * @param  array  $attributes [description]
+     * @param  string $component  [description]
+     * @param  string $extends    [description]
+     * @return [type]             [description]
+     */
+    public static function make($content = true, array $attributes = [], string $component = '', string $extends = ''): string
+    {
+        $config = [];
+        if (is_bool($content) && ! $content) {
+            $config['omit-end-tag'] = true;
+
+        } elseif (is_array($content) || is_string($content)) {
+            $config['content'] = $content;
+
+        }
+
+        if (strlen($component) == 0) {
+            return '';
+        }
+
+        $config['attributes'] = $attributes;
+        $config['element'] = $component;
+        $config['extends'] = $extends;
+
+        return self::build($config);
+    }
+
+    /**
      * Compiles HTML (XML) string based on configuration input.
      *
      * @param  array  $config [description]
@@ -113,7 +183,7 @@ abstract class Component
 
         $ordered = [];
         $html = '<'. $config['element'];
-        if (isset($config['extends'])) {
+        if (isset($config['extends']) && strlen($config['extends']) > 0) {
             $html = '<'. $config['extends'];
             if (isset($config['attributes']['is'])) {
                 unset($config['attributes']['is']);

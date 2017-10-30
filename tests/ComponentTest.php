@@ -8,6 +8,13 @@ use Eightfold\HtmlComponent\Component;
 
 class ComponentTest extends BaseTest
 {
+    public function testMakeEmpty()
+    {
+        $expected = '';
+        $result = Component::make();
+        $this->assertEquality($expected, $result);
+    }
+
     public function testHtmlComponent()
     {
         $expected = '<html id="my-component"></html>';
@@ -20,6 +27,13 @@ class ComponentTest extends BaseTest
         ]);
         $this->assertEquality($expected, $result);
     }
+
+    public function testMakeHtmlComponent()
+    {
+        $expected = '<html id="my-component"></html>';
+        $result = Component::make(true, ['id' => 'my-component'], 'html');
+        $this->assertEquality($expected, $result);
+    }    
 
     public function testParagraphSpanComponent()
     {
@@ -38,6 +52,17 @@ class ComponentTest extends BaseTest
         $this->assertEquality($expected, $result);
     }
 
+    public function testMakeParagraphSpanComponent()
+    {
+        $expected = '<p><span>Hello, World!</span></p>';
+        $result = Component::make(
+            Component::make('Hello, World!', [], 'span'),
+            [],
+            'p'
+        );
+        $this->assertEquality($expected, $result);
+    }
+
     public function testButtonWebComponentExtension()
     {
         $expected = '<button is="my-button">Save</button>';
@@ -48,4 +73,11 @@ class ComponentTest extends BaseTest
         ]);
         $this->assertEquality($expected, $result);
     }
+
+    public function testMakeButtonWebComponentExtension()
+    {
+        $expected = '<button is="my-button">Save</button>';
+        $result = Component::make('Save', [], 'my-button', 'button');
+        $this->assertEquality($expected, $result);
+    }    
 }

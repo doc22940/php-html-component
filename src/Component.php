@@ -80,9 +80,21 @@ namespace Eightfold\HtmlComponent;
  * </html>
  * ```
  *
- * @version 1.0.0
+ * Using make():
+ *
+ * Component::make([
+ * 
+ *     Component::make(
+ *         Component::make('Hello, World!', [], 'title')
+ *     , [], 'head'),
+ *     
+ *     Component::make(
+ *         Component::make('Hello, World!', [], 'my-component', 'p')
+ *     , [], 'body')
+ *     
+ * ], [], 'html');
  */
-abstract class Component
+class Component
 {
     /**
      * Experimental:
@@ -138,9 +150,15 @@ abstract class Component
         if (is_bool($content) && ! $content) {
             $config['omit-end-tag'] = true;
 
-        } elseif (is_array($content) || is_string($content)) {
+        } elseif (is_string($content)) {
             $config['content'] = $content;
 
+        } elseif (is_array($content)) {
+            $config['content'] = '';
+            foreach ($content as $maker) {
+                $config['content'] .= $maker;
+
+            }
         }
 
         if (strlen($component) == 0) {
@@ -160,7 +178,7 @@ abstract class Component
      * @param  array  $config [description]
      * @return [type]         [description]
      */
-    static public function build(array $config = []): string
+    public static function build(array $config = []): string
     {
         $html = self::opening($config);
         $html .= static::content($config);
@@ -282,5 +300,151 @@ abstract class Component
             $html .= '</'. $config['element'] .'>';
         }
         return $html;
+    }
+
+    /** 2.0 */
+    /**
+     * One of the things I like about 8fold UI Kit is the call flow:
+     *
+     * UIKit::p('content', ['attributes'], 'component');
+     *
+     * We know who we're calling. We know what element should be returned. We have the
+     * the attributes, which are optional. We have the ability to use a web component.
+     * What I don't like is actually something I read about a lot of HTML generators, 
+     * which is that optional attributes part. It's not a bad design decision and it 
+     * still allows for the need to do something like this:
+     *
+     * UIKit::p('content', [], 'my-paragraph');
+     *
+     * This is one of the reasons we moved to an array setup in the first place. Call
+     * signature that, arguably do too much, fall victim to this quite often. You end
+     * up using the default value because you don't need it, but you do need the next
+     * one.
+     *
+     * The drawback on the 8fold Component is similar:
+     *
+     * Component::make('content', [], 'p', 'my-paragraph');
+     *
+     * Got me thinking, what if we could incorporate the dynamic nature of the kit?
+     *
+     * The purpose of 8fold Component is to generate web components. Web components 
+     * need to be hyphenated to allow a namespace. Having said that, function names
+     * cannot be hyphenated; however, they can include underscores.
+     *
+     * Component::my_paragraph('content', [], 'p');
+     *
+     * That gets rid of one argument but we still have the attributes problem. This is
+     * problem that can easily be solved by using instantiation and method chaining:
+     *
+     * Component::my_paragraph('content', 'p')->attributes([]);
+     *
+     * Having said that, we lost the automatic compilation required by using static
+     * methods, because we are returning the instance and not the string.
+     *
+     * Component::my_paragraph('content', 'p')->attributes([])->compile();
+     *
+     * This is pretty readable. I need `my-paragraph` with some content, it extends the
+     * normal HTML `p` element, it should have the following attributes. Go ahead and
+     * compile it because I'm done defining it.
+     * 
+     * This is pretty normal for HTML generators using PHP. Having said that, something
+     * also pretty normal is that the `compile` or `render` or `squirrel` method that
+     * actually compiles the string, never takes an argument. Why not put the 
+     * attributes there?
+     *
+     * Component::my_paragraph('content', 'p')->compile([]);
+     *
+     * We could make all the attributes method calls as well, but that doesn't really
+     * save us anything (and comes with its own set of problems):
+     *
+     * Component::my_paragraph('content', 'p')->class('my-pararaph')->compile();
+     *
+     * Compare that to using an array:
+     *
+     * Component::my_paragraph('content', 'p')
+     *   ->attributes(['class' => 'my-paragraph'])
+     *   ->compile();
+     *
+     * We get rid of the square brackets. Aesthetically the non-array one is easier on 
+     * the eyes (the array is one of the least aesthetically considered piece of PHP).
+     * You are still typing out the attribute name though and, to be fair, you can't
+     * get away from that really. But, you can still modify the array:
+     *
+     * Component::my_paragraph('content', 'p')
+     *   ->attributes('class.my-paragraph', 'id.my-unique-id')
+     *
+     * So, instead of typeing `=>` or '->', which are effevtivly the same thing, you 
+     * type `.`. The square brackets are still deleted. And, unlike with method 
+     * chaining, the attributes are all contained in one place.
+     *
+     * 
+     *
+     */
+    private $_element = '';
+    private $_extends = '';
+    private $_content = true;
+    private $_attributes = [];
+
+    static public function __callStatic(string $element, array $args)
+    {
+        if ($element == 'make') {
+            die('make call');
+
+        } elseif ($element == 'build') {
+            die('build call');
+
+        }
+
+        $extends = (isset($args[1]))
+            ? $args[1]
+            : '';
+        return self::createInstance($args[0], $element, $extends);
+
+        die($element);
+        $class = static::classForElement($element);
+
+        if (self::shouldUseMake($args)) {
+            $content = $args[0];
+            $attributes = (isset($args[1])) ? $args[1] : [];
+            $component = (isset($args[2]))  ? $args[2] : '';
+            $extends = (isset($args[3]))    ? $args[3] : '';
+
+            return $class::make($content, $attributes, $component, $extends);
+        }
+        $config = [];
+        if (isset($args[0])) {
+            $config = $args[0];
+        }
+        return $class::build($config);
+    }
+
+    private static function createInstance($content, string $extends = ''): Component
+    {
+        $instance = new Component($content, $extends);
+        return $instance;
+    }
+
+    private function __construct($content, string $element = '', string $extends = '')
+    {
+        $this->_element = $element;
+        $this->_extends = $extends;
+        $this->_content = $content;
+    }
+
+    public function compile(string ...$attributes)
+    {
+        $attributeString = '';
+        if (count($attributes) > 0) {
+            $atts = [];
+            foreach ($attributes as $attribute) {
+                $atts[] = str_replace('.', '="', $attribute) .'"';
+
+            }
+            $attributeString = ' '. implode(' ', $atts);
+        }
+
+        return '<'. $this->_element . $attributeString .'>'. 
+            $this->_content .
+            '</'. $this->_element .'>';
     }
 }

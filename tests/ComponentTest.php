@@ -33,7 +33,14 @@ class ComponentTest extends BaseTest
         $expected = '<html id="my-component"></html>';
         $result = Component::make(true, ['id' => 'my-component'], 'html');
         $this->assertEquality($expected, $result);
-    }    
+    }
+
+    public function testHtmlComponent2()
+    {
+        $expected = '<html id="my-component"></html>';
+        $result = Component::html(false)->compile('id.my-component');
+        $this->assertEquality($expected, $result);
+    }
 
     public function testParagraphSpanComponent()
     {
@@ -79,5 +86,21 @@ class ComponentTest extends BaseTest
         $expected = '<button is="my-button">Save</button>';
         $result = Component::make('Save', [], 'my-button', 'button');
         $this->assertEquality($expected, $result);
-    }    
+    }
+
+    public function testMakePage()
+    {
+        $expected = '<html><head><title>Hello, World!</title></head><body><p is="my-component">Hello, World!</p></body></html>';
+        $result = Component::make([
+            Component::make(
+                Component::make('Hello, World!', [], 'title')
+            , [], 'head'),
+
+            Component::make(
+                Component::make('Hello, World!', [], 'my-component', 'p')
+            , [], 'body')
+
+        ], [], 'html');
+        $this->assertEquality($expected, $result);
+    }  
 }

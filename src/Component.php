@@ -80,9 +80,21 @@ namespace Eightfold\HtmlComponent;
  * </html>
  * ```
  *
- * @version 1.0.0
+ * Using make():
+ *
+ * Component::make([
+ * 
+ *     Component::make(
+ *         Component::make('Hello, World!', [], 'title')
+ *     , [], 'head'),
+ *     
+ *     Component::make(
+ *         Component::make('Hello, World!', [], 'my-component', 'p')
+ *     , [], 'body')
+ *     
+ * ], [], 'html');
  */
-abstract class Component
+class Component
 {
     /**
      * Experimental:
@@ -132,27 +144,33 @@ abstract class Component
      * @param  string $extends    [description]
      * @return [type]             [description]
      */
-    public static function make($content = true, array $attributes = [], string $component = '', string $extends = ''): string
-    {
-        $config = [];
-        if (is_bool($content) && ! $content) {
-            $config['omit-end-tag'] = true;
+    // public static function make($content = true, array $attributes = [], string $component = '', string $extends = ''): string
+    // {
+    //     $config = [];
+    //     if (is_bool($content) && ! $content) {
+    //         $config['omit-end-tag'] = true;
 
-        } elseif (is_array($content) || is_string($content)) {
-            $config['content'] = $content;
+    //     } elseif (is_string($content)) {
+    //         $config['content'] = $content;
 
-        }
+    //     } elseif (is_array($content)) {
+    //         $config['content'] = '';
+    //         foreach ($content as $maker) {
+    //             $config['content'] .= $maker;
 
-        if (strlen($component) == 0) {
-            return '';
-        }
+    //         }
+    //     }
 
-        $config['attributes'] = $attributes;
-        $config['element'] = $component;
-        $config['extends'] = $extends;
+    //     if (strlen($component) == 0) {
+    //         return '';
+    //     }
 
-        return self::build($config);
-    }
+    //     $config['attributes'] = $attributes;
+    //     $config['element'] = $component;
+    //     $config['extends'] = $extends;
+
+    //     return self::build($config);
+    // }
 
     /**
      * Compiles HTML (XML) string based on configuration input.
@@ -160,13 +178,13 @@ abstract class Component
      * @param  array  $config [description]
      * @return [type]         [description]
      */
-    static public function build(array $config = []): string
-    {
-        $html = self::opening($config);
-        $html .= static::content($config);
-        $html .= self::closing($config);
-        return $html;
-    }
+    // public static function build(array $config = []): string
+    // {
+    //     $html = self::opening($config);
+    //     $html .= static::content($config);
+    //     $html .= self::closing($config);
+    //     return $html;
+    // }
 
     /**
      * Generates the opening for the element. Ex. <html>.
@@ -282,5 +300,190 @@ abstract class Component
             $html .= '</'. $config['element'] .'>';
         }
         return $html;
+    }
+
+    /**
+     * @deprecated 2.0 The `make` method is deprecated and will be removed when 2.0 is 
+     *                 released.
+     *                 
+     * make($content, array $attributes, string $component, string $extends): string
+     *
+     */
+    private static function deprecatedMake(string $element, array $args)
+    {
+        if (count($args) == 0) {
+            return '';
+        }
+        
+        $realElement = $args[2];
+        $extends = '';
+        if (isset($args[3])) {
+            $realElement = $args[2];
+            $extends = $args[3];
+        }
+        $content = $args[0];
+
+        $attributes = [];
+        $precompileAttributes = $args[1];
+        foreach ($precompileAttributes as $key => $value) {
+            $attributes[] = $key .' '. $value;
+        }
+
+        $return = '';
+        if (count($attributes) > 0) {
+            $attributes = implode(', ', $attributes);
+            $return = self::$realElement($content, $extends)
+                ->attr($attributes);
+
+        } else {
+            $return = self::$realElement($content, $extends);
+
+        }
+        return $return->compile();
+    }
+
+    /**
+     * @deprecated 2.0 The `build` method is deprecated and will be removed when 2.0 
+     *                 is released.
+     *                 
+     * build(array $config): string
+     *
+     */
+    private static function deprecatedBuild(string $element, array $args)
+    {
+        $config = $args[0];
+        $realElement = $config['element'];
+        $extends = (isset($config['extends']))
+            ? $config['extends']
+            : '';
+        $content = '';
+        if (isset($config['content']) && is_array($config['content'])) {
+            $content = self::deprecatedBuild($realElement, $config['content']);
+
+        } elseif (isset($config['content']) && is_string($config['content'])) {
+            $content = $config['content'];
+
+        }
+
+        $precompileAttributes = (isset($config['attributes']))
+            ? $config['attributes']
+            : [];
+        return self::make($content, $precompileAttributes, $realElement, $extends);
+    }
+
+    /** 2.0 */
+    private $_element = '';
+    private $_extends = '';
+    private $_content;
+    private $_attributes = [];
+
+    /**
+     * Intercept all static calls.
+     *
+     * 
+     * @param  string $element [description]
+     * @param  array  $args    [description]
+     * @return [type]          [description]
+     */
+    static public function __callStatic(string $element, array $args)
+    {
+        if ($element == 'make') {
+            return self::deprecatedMake($element, $args);
+
+        } elseif ($element == 'build') {
+            return self::deprecatedBuild($element, $args);
+
+        }
+
+        $extends = (isset($args[1]))
+            ? $args[1]
+            : '';
+        return self::createInstance($args[0], $element, $extends);
+    }
+
+    private static function createInstance($content, $element, $extends): Component
+    {
+        $instance = new Component($content, $element, $extends);
+        return $instance;
+    }
+
+    private function __construct($content, string $element, string $extends = '')
+    {
+        $this->_element = $element;
+        $this->_extends = $extends;
+        $this->_content = $content;
+    }
+
+    public function attr(string ...$attributes): Component
+    {
+        $this->_attributes = [];
+        foreach ($attributes as $value) {
+            list($attr, $text) = explode(' ', $value, 2);
+            $this->_attributes[] = $attr .'="'. $text .'"';
+        }
+        return $this;
+    }
+
+    public function compile(string ...$attributes): string
+    {
+        if (count($attributes) > 0) {
+            $this->attr(implode(', ', $attributes));
+        }
+
+        $content = null;
+        if ($this->isComponent($this->_content)) {
+            $content = $this->_content->compile();
+
+        } elseif (is_bool($this->_content) && ! $this->_content) {
+            $content = true;
+
+        } elseif (is_string($this->_content)) {
+            $content = $this->_content;
+
+        } elseif (is_array($this->_content)) {
+            $content = '';
+            foreach ($this->_content as $maker) {
+                $content .= (is_string($maker))
+                    ? $maker
+                    : $maker->compile();
+
+            }
+        }        
+
+        $attributes = '';
+        if (count($this->_attributes) > 0) {
+            $attributes = ' '. implode(' ', $this->_attributes);
+        }
+
+        $element = str_replace('_', '-', $this->_element);
+
+        if (self::isWebComponent()) {    
+            $opening = '<'. $this->_extends .' is="'. $element .'"' . $attributes .'>';
+            if ($this->hasEndTag()) {
+                return $opening . $content . '</'. $this->_extends .'>';            
+            }
+            return $opening;
+        }
+
+        $opening = '<'. $element . $attributes .'>';
+        if ($this->hasEndTag()) {
+            return $opening . $content . '</'. $element .'>';            
+        }
+        return $opening;
+    }
+
+    private function isWebComponent(): bool
+    {
+        return (strlen($this->_element) > 0 && strlen($this->_extends) > 0);
+    }
+
+    private function isComponent($test): bool
+    {
+        return is_a($test, Component::class);
+    }
+
+    private function hasEndTag(): bool
+    {
+        return ( ! is_bool($this->_content) || $this->_content);
     }
 }

@@ -144,33 +144,33 @@ class Component
      * @param  string $extends    [description]
      * @return [type]             [description]
      */
-    public static function make($content = true, array $attributes = [], string $component = '', string $extends = ''): string
-    {
-        $config = [];
-        if (is_bool($content) && ! $content) {
-            $config['omit-end-tag'] = true;
+    // public static function make($content = true, array $attributes = [], string $component = '', string $extends = ''): string
+    // {
+    //     $config = [];
+    //     if (is_bool($content) && ! $content) {
+    //         $config['omit-end-tag'] = true;
 
-        } elseif (is_string($content)) {
-            $config['content'] = $content;
+    //     } elseif (is_string($content)) {
+    //         $config['content'] = $content;
 
-        } elseif (is_array($content)) {
-            $config['content'] = '';
-            foreach ($content as $maker) {
-                $config['content'] .= $maker;
+    //     } elseif (is_array($content)) {
+    //         $config['content'] = '';
+    //         foreach ($content as $maker) {
+    //             $config['content'] .= $maker;
 
-            }
-        }
+    //         }
+    //     }
 
-        if (strlen($component) == 0) {
-            return '';
-        }
+    //     if (strlen($component) == 0) {
+    //         return '';
+    //     }
 
-        $config['attributes'] = $attributes;
-        $config['element'] = $component;
-        $config['extends'] = $extends;
+    //     $config['attributes'] = $attributes;
+    //     $config['element'] = $component;
+    //     $config['extends'] = $extends;
 
-        return self::build($config);
-    }
+    //     return self::build($config);
+    // }
 
     /**
      * Compiles HTML (XML) string based on configuration input.
@@ -178,13 +178,13 @@ class Component
      * @param  array  $config [description]
      * @return [type]         [description]
      */
-    public static function build(array $config = []): string
-    {
-        $html = self::opening($config);
-        $html .= static::content($config);
-        $html .= self::closing($config);
-        return $html;
-    }
+    // public static function build(array $config = []): string
+    // {
+    //     $html = self::opening($config);
+    //     $html .= static::content($config);
+    //     $html .= self::closing($config);
+    //     return $html;
+    // }
 
     /**
      * Generates the opening for the element. Ex. <html>.
@@ -302,96 +302,100 @@ class Component
         return $html;
     }
 
-    /** 2.0 */
+    private static function deprecatedMake(string $element, array $args)
+    {
+        if (count($args) == 0) {
+            return '';
+        }
+        
+        $realElement = $args[2];
+        $extends = '';
+        if (isset($args[3])) {
+            $realElement = $args[2];
+            $extends = $args[3];
+        }
+        $content = $args[0];
+
+        $attributes = [];
+        $precompileAttributes = $args[1];
+        foreach ($precompileAttributes as $key => $value) {
+            $attributes[] = $key .' '. $value;
+        }
+        if (count($attributes) > 0) {
+            $attributes = implode(', ', $attributes);
+            return self::$realElement($content, $extends)
+                ->attr($attributes)
+                ->compile();
+        }
+        return self::$realElement($content, $extends)
+            ->compile();
+    }
     /**
-     * One of the things I like about 8fold UI Kit is the call flow:
-     *
-     * UIKit::p('content', ['attributes'], 'component');
-     *
-     * We know who we're calling. We know what element should be returned. We have the
-     * the attributes, which are optional. We have the ability to use a web component.
-     * What I don't like is actually something I read about a lot of HTML generators, 
-     * which is that optional attributes part. It's not a bad design decision and it 
-     * still allows for the need to do something like this:
-     *
-     * UIKit::p('content', [], 'my-paragraph');
-     *
-     * This is one of the reasons we moved to an array setup in the first place. Call
-     * signature that, arguably do too much, fall victim to this quite often. You end
-     * up using the default value because you don't need it, but you do need the next
-     * one.
-     *
-     * The drawback on the 8fold Component is similar:
-     *
-     * Component::make('content', [], 'p', 'my-paragraph');
-     *
-     * Got me thinking, what if we could incorporate the dynamic nature of the kit?
-     *
-     * The purpose of 8fold Component is to generate web components. Web components 
-     * need to be hyphenated to allow a namespace. Having said that, function names
-     * cannot be hyphenated; however, they can include underscores.
-     *
-     * Component::my_paragraph('content', [], 'p');
-     *
-     * That gets rid of one argument but we still have the attributes problem. This is
-     * problem that can easily be solved by using instantiation and method chaining:
-     *
-     * Component::my_paragraph('content', 'p')->attributes([]);
-     *
-     * Having said that, we lost the automatic compilation required by using static
-     * methods, because we are returning the instance and not the string.
-     *
-     * Component::my_paragraph('content', 'p')->attributes([])->compile();
-     *
-     * This is pretty readable. I need `my-paragraph` with some content, it extends the
-     * normal HTML `p` element, it should have the following attributes. Go ahead and
-     * compile it because I'm done defining it.
+     * @deprecated 2.0 The `make` method is deprecated and will be removed when 2.0 is 
+     *                 released.
+     *                 
+     * make($content, array $attributes, string $component, string $extends): string
      * 
-     * This is pretty normal for HTML generators using PHP. Having said that, something
-     * also pretty normal is that the `compile` or `render` or `squirrel` method that
-     * actually compiles the string, never takes an argument. Why not put the 
-     * attributes there?
-     *
-     * Component::my_paragraph('content', 'p')->compile([]);
-     *
-     * We could make all the attributes method calls as well, but that doesn't really
-     * save us anything (and comes with its own set of problems):
-     *
-     * Component::my_paragraph('content', 'p')->class('my-pararaph')->compile();
-     *
-     * Compare that to using an array:
-     *
-     * Component::my_paragraph('content', 'p')
-     *   ->attributes(['class' => 'my-paragraph'])
-     *   ->compile();
-     *
-     * We get rid of the square brackets. Aesthetically the non-array one is easier on 
-     * the eyes (the array is one of the least aesthetically considered piece of PHP).
-     * You are still typing out the attribute name though and, to be fair, you can't
-     * get away from that really. But, you can still modify the array:
-     *
-     * Component::my_paragraph('content', 'p')
-     *   ->attributes('class.my-paragraph', 'id.my-unique-id')
-     *
-     * So, instead of typeing `=>` or '->', which are effevtivly the same thing, you 
-     * type `.`. The square brackets are still deleted. And, unlike with method 
-     * chaining, the attributes are all contained in one place.
-     *
-     * 
-     *
-     */
+    private static function deprecatedBuild(string $element, array $args)
+    {
+        var_dump($args);
+        $config = $args[0];
+        $realElement = $config['element'];
+        $extends = (isset($config['extends']))
+            ? $config['extends']
+            : '';
+        $content = (isset($config['content']) && is_array($config['content']))
+            ? self::deprecatedBuild($realElement, $config['content'])
+            : (isset($config['content']) && is_string($config['content']))
+                ? $config['content']
+                : '';
+        $precompileAttributes = (isset($config['attributes']))
+            ? $config['attributes']
+            : [];
+        
+        $attributes = [];
+        foreach ($precompileAttributes as $key => $value) {
+            $attributes[] = $key .' '. $value;   
+        }
+
+        $return = '';
+        if (count($attributes) > 0) {
+            $attributes = implode(', ', $attributes);
+            $return = self::$realElement($content, $extends)
+                ->attr($attributes)
+                ->compile();
+        }
+        var_dump($content);
+        print($content .' : '. $extends);
+        $return = self::$realElement($content, $extends)
+            ->compile();
+        var_dump($return);
+        return $return;
+        die();
+
+    }
+
+    /** 2.0 */
     private $_element = '';
     private $_extends = '';
-    private $_content = true;
+    private $_content;
     private $_attributes = [];
 
+    /**
+     * Intercept all static calls.
+     *
+     * 
+     * @param  string $element [description]
+     * @param  array  $args    [description]
+     * @return [type]          [description]
+     */
     static public function __callStatic(string $element, array $args)
     {
         if ($element == 'make') {
-            die('make call');
+            return self::deprecatedMake($element, $args);
 
         } elseif ($element == 'build') {
-            die('build call');
+            return self::deprecatedBuild($element, $args);
 
         }
 
@@ -399,52 +403,91 @@ class Component
             ? $args[1]
             : '';
         return self::createInstance($args[0], $element, $extends);
-
-        die($element);
-        $class = static::classForElement($element);
-
-        if (self::shouldUseMake($args)) {
-            $content = $args[0];
-            $attributes = (isset($args[1])) ? $args[1] : [];
-            $component = (isset($args[2]))  ? $args[2] : '';
-            $extends = (isset($args[3]))    ? $args[3] : '';
-
-            return $class::make($content, $attributes, $component, $extends);
-        }
-        $config = [];
-        if (isset($args[0])) {
-            $config = $args[0];
-        }
-        return $class::build($config);
     }
 
-    private static function createInstance($content, string $extends = ''): Component
+    private static function createInstance($content, $element, $extends): Component
     {
-        $instance = new Component($content, $extends);
+        $instance = new Component($content, $element, $extends);
         return $instance;
     }
 
-    private function __construct($content, string $element = '', string $extends = '')
+    private function __construct($content, string $element, string $extends = '')
     {
         $this->_element = $element;
         $this->_extends = $extends;
         $this->_content = $content;
     }
 
-    public function compile(string ...$attributes)
+    public function attr(string ...$attributes): Component
     {
-        $attributeString = '';
-        if (count($attributes) > 0) {
-            $atts = [];
-            foreach ($attributes as $attribute) {
-                $atts[] = str_replace('.', '="', $attribute) .'"';
+        $this->_attributes = [];
+        foreach ($attributes as $value) {
+            list($attr, $text) = explode(' ', $value, 2);
+            $this->_attributes[] = $attr .'="'. $text .'"';
+        }
+        return $this;
+    }
 
-            }
-            $attributeString = ' '. implode(' ', $atts);
+    public function compile(string ...$attributes): string
+    {
+        if (count($attributes) > 0) {
+            $this->attr(implode(', ', $attributes));
         }
 
-        return '<'. $this->_element . $attributeString .'>'. 
-            $this->_content .
-            '</'. $this->_element .'>';
+        $content = null;
+        if ($this->isComponent($this->_content)) {
+            $content = $this->_content->compile();
+
+        } elseif (is_bool($this->_content) && ! $this->_content) {
+            $content = true;
+
+        } elseif (is_string($this->_content)) {
+            $content = $this->_content;
+
+        } elseif (is_array($this->_content)) {
+            $content = '';
+            foreach ($this->_content as $maker) {
+                $content .= (is_string($maker))
+                    ? $maker
+                    : $maker->compile();
+
+            }
+        }        
+
+        $attributes = '';
+        if (count($this->_attributes) > 0) {
+            $attributes = ' '. implode(' ', $this->_attributes);
+        }
+
+        $element = str_replace('_', '-', $this->_element);
+
+        if (self::isWebComponent()) {    
+            $opening = '<'. $this->_extends .' is="'. $element .'"' . $attributes .'>';
+            if ($this->hasEndTag()) {
+                return $opening . $content . '</'. $this->_extends .'>';            
+            }
+            return $opening;
+        }
+
+        $opening = '<'. $element . $attributes .'>';
+        if ($this->hasEndTag()) {
+            return $opening . $content . '</'. $element .'>';            
+        }
+        return $opening;
+    }
+
+    private function isWebComponent(): bool
+    {
+        return (strlen($this->_element) > 0 && strlen($this->_extends) > 0);
+    }
+
+    private function isComponent($test): bool
+    {
+        return is_a($test, Component::class);
+    }
+
+    private function hasEndTag(): bool
+    {
+        return ( ! is_bool($this->_content) || $this->_content);
     }
 }

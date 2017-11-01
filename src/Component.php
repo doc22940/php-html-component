@@ -302,6 +302,13 @@ class Component
         return $html;
     }
 
+    /**
+     * @deprecated 2.0 The `make` method is deprecated and will be removed when 2.0 is 
+     *                 released.
+     *                 
+     * make($content, array $attributes, string $component, string $extends): string
+     *
+     */
     private static function deprecatedMake(string $element, array $args)
     {
         if (count($args) == 0) {
@@ -321,58 +328,47 @@ class Component
         foreach ($precompileAttributes as $key => $value) {
             $attributes[] = $key .' '. $value;
         }
-        if (count($attributes) > 0) {
-            $attributes = implode(', ', $attributes);
-            return self::$realElement($content, $extends)
-                ->attr($attributes)
-                ->compile();
-        }
-        return self::$realElement($content, $extends)
-            ->compile();
-    }
-    /**
-     * @deprecated 2.0 The `make` method is deprecated and will be removed when 2.0 is 
-     *                 released.
-     *                 
-     * make($content, array $attributes, string $component, string $extends): string
-     * 
-    private static function deprecatedBuild(string $element, array $args)
-    {
-        var_dump($args);
-        $config = $args[0];
-        $realElement = $config['element'];
-        $extends = (isset($config['extends']))
-            ? $config['extends']
-            : '';
-        $content = (isset($config['content']) && is_array($config['content']))
-            ? self::deprecatedBuild($realElement, $config['content'])
-            : (isset($config['content']) && is_string($config['content']))
-                ? $config['content']
-                : '';
-        $precompileAttributes = (isset($config['attributes']))
-            ? $config['attributes']
-            : [];
-        
-        $attributes = [];
-        foreach ($precompileAttributes as $key => $value) {
-            $attributes[] = $key .' '. $value;   
-        }
 
         $return = '';
         if (count($attributes) > 0) {
             $attributes = implode(', ', $attributes);
             $return = self::$realElement($content, $extends)
-                ->attr($attributes)
-                ->compile();
-        }
-        var_dump($content);
-        print($content .' : '. $extends);
-        $return = self::$realElement($content, $extends)
-            ->compile();
-        var_dump($return);
-        return $return;
-        die();
+                ->attr($attributes);
 
+        } else {
+            $return = self::$realElement($content, $extends);
+
+        }
+        return $return->compile();
+    }
+
+    /**
+     * @deprecated 2.0 The `build` method is deprecated and will be removed when 2.0 
+     *                 is released.
+     *                 
+     * build(array $config): string
+     *
+     */
+    private static function deprecatedBuild(string $element, array $args)
+    {
+        $config = $args[0];
+        $realElement = $config['element'];
+        $extends = (isset($config['extends']))
+            ? $config['extends']
+            : '';
+        $content = '';
+        if (isset($config['content']) && is_array($config['content'])) {
+            $content = self::deprecatedBuild($realElement, $config['content']);
+
+        } elseif (isset($config['content']) && is_string($config['content'])) {
+            $content = $config['content'];
+
+        }
+
+        $precompileAttributes = (isset($config['attributes']))
+            ? $config['attributes']
+            : [];
+        return self::make($content, $precompileAttributes, $realElement, $extends);
     }
 
     /** 2.0 */

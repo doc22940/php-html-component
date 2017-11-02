@@ -425,14 +425,20 @@ class Component
         return $this;
     }
 
+    public function role(string $role): Component
+    {
+        $this->_role = $role;
+        return $this;
+    }    
+
     public function compile(string ...$attributes): string
-    {        
+    {
         $element = str_replace('_', '-', $this->_element);
         $content = $this->compileContent();
-        $attributes = $this->compileAttributes();
+        $attributes = $this->compileAttributes($attributes);
 
         if (self::isWebComponent()) {    
-            $opening = '<'. $this->_extends .' is="'. $element .'"' . $attributes .'>';
+            $opening = '<'. $this->_extends . $attributes .'>';
             if ($this->hasEndTag()) {
                 return $opening . $content . '</'. $this->_extends .'>';            
             }
@@ -470,10 +476,19 @@ class Component
         return $content;
     }
 
-    private function compileAttributes()
+    private function compileAttributes(array $attributes = []): string
     {
-        if (count($attributes) > 0) {
-            $this->attr($this->_role, implode(', ', $attributes));
+        $this->_attributes = $attributes;
+        if (strlen($this->_extends) > 0) {
+            array_unshift($this->_attributes, 'is '. $this->_extends);
+        }
+
+        if (strlen($this->_role) > 0) {
+            array_unshift($this->_attributes, 'role '. $this->_role);
+        }
+
+        if (count($this->_attributes) > 0) {
+            $this->attr(implode(', ', $this->_attributes));
         }
 
         $attributes = '';

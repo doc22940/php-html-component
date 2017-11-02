@@ -12,7 +12,7 @@ class Component
     
     public static function createInstance($content, string $element, string $extends =''): Component
     {
-        $instance = new Component($content, $element, $extends);
+        $instance = new static($content, $element, $extends);
         return $instance;
     }
 
@@ -81,6 +81,9 @@ class Component
 
     private function compileContent()
     {
+        // print("\n\ncomponent compile\n\n");
+        // var_dump($this->_content ."\n");
+        // print($this->_content ."\n");
         $content = '';
         if ($this->isComponent($this->_content)) {
             $content = $this->_content->compile();
@@ -120,7 +123,13 @@ class Component
             $preparedAttributes = [];
             foreach ($this->_attributes as $attribute) {
                 list($key, $value) = explode(' ', $attribute, 2);
-                $preparedAttributes[] = $key .'="'. $value .'"';
+                if ($key == $value) {
+                    $preparedAttributes[] = $key;
+
+                } else {
+                    $preparedAttributes[] = $key .'="'. $value .'"';    
+
+                }
             }
             $attributes = implode(' ', $preparedAttributes);
         }

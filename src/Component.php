@@ -192,39 +192,39 @@ class Component
      * @param  array  &$config [description]
      * @return [type]          [description]
      */
-    static private function opening(array &$config): string
-    {
-        if (!isset($config['attributes'])) {
-            $config['attributes'] = [];
+    // static private function opening(array &$config): string
+    // {
+    //     if (!isset($config['attributes'])) {
+    //         $config['attributes'] = [];
 
-        }
+    //     }
 
-        $ordered = [];
-        $html = '<'. $config['element'];
-        if (isset($config['extends']) && strlen($config['extends']) > 0) {
-            $html = '<'. $config['extends'];
-            if (isset($config['attributes']['is'])) {
-                unset($config['attributes']['is']);
-            }
-            $ordered['is'] = $config['element'];
-            $config['element'] = $config['extends'];
-        }
+    //     $ordered = [];
+    //     $html = '<'. $config['element'];
+    //     if (isset($config['extends']) && strlen($config['extends']) > 0) {
+    //         $html = '<'. $config['extends'];
+    //         if (isset($config['attributes']['is'])) {
+    //             unset($config['attributes']['is']);
+    //         }
+    //         $ordered['is'] = $config['element'];
+    //         $config['element'] = $config['extends'];
+    //     }
 
-        if (isset($config['role'])) {
-            if (isset($config['attributes']['role'])) {
-                unset($config['attributes']['role']);
-            }
-            $ordered['role'] = $config['role'];
-        }
+    //     if (isset($config['role'])) {
+    //         if (isset($config['attributes']['role'])) {
+    //             unset($config['attributes']['role']);
+    //         }
+    //         $ordered['role'] = $config['role'];
+    //     }
 
-        $config['attributes'] = array_merge($ordered, $config['attributes']);
+    //     $config['attributes'] = array_merge($ordered, $config['attributes']);
 
-        if (isset($config['attributes'])) {
-            $html .= self::attributes($config);
-        }
-        $html .= '>';
-        return $html;        
-    }
+    //     if (isset($config['attributes'])) {
+    //         $html .= self::attributes($config);
+    //     }
+    //     $html .= '>';
+    //     return $html;        
+    // }
 
     /**
      * Concatenates the attributes into a string. Ex. id="foo" class="bar".
@@ -232,28 +232,28 @@ class Component
      * @param  array  &$config [description]
      * @return [type]          [description]
      */
-    static private function attributes(array &$config): string
-    {
-        $html = '';
-        if (isset($config['attributes']) && $attributes = $config['attributes']) {
-            $pairs = implode(' ', array_map(function($key, $value) {
-                // Booleans can be `key` or `key="key"`
-                // HTML5 prefers just `key`.
-                if ($key == $value) {
-                    return $key;
-                }
+    // static private function attributes(array &$config): string
+    // {
+    //     $html = '';
+    //     if (isset($config['attributes']) && $attributes = $config['attributes']) {
+    //         $pairs = implode(' ', array_map(function($key, $value) {
+    //             // Booleans can be `key` or `key="key"`
+    //             // HTML5 prefers just `key`.
+    //             if ($key == $value) {
+    //                 return $key;
+    //             }
 
-                if (strlen($value) > 0) {
-                    return $key .'="'. $value .'"';    
-                }
-            }, array_keys($attributes), array_values($attributes)));
-            if (strlen($pairs) > 1) {
-                $html .= ' '. $pairs;
+    //             if (strlen($value) > 0) {
+    //                 return $key .'="'. $value .'"';    
+    //             }
+    //         }, array_keys($attributes), array_values($attributes)));
+    //         if (strlen($pairs) > 1) {
+    //             $html .= ' '. $pairs;
 
-            }
-        }
-        return $html;
-    }
+    //         }
+    //     }
+    //     return $html;
+    // }
 
     /**
      * Processes the content of the element under build.
@@ -267,23 +267,23 @@ class Component
      * @param  array  &$config [description]
      * @return [type]          [description]
      */
-    static protected function content(array $config): string
-    {
-        $html = '';
-        if (isset($config['content'])) {
-            if (is_array($config['content'])) {
-                foreach ($config['content'] as $contentConfig) {
-                    $html .= static::build($contentConfig);   
+    // static protected function content(array $config): string
+    // {
+    //     $html = '';
+    //     if (isset($config['content'])) {
+    //         if (is_array($config['content'])) {
+    //             foreach ($config['content'] as $contentConfig) {
+    //                 $html .= static::build($contentConfig);   
 
-                }
+    //             }
 
-            } elseif (is_string($config['content'])) {
-                $html .= $config['content'];
+    //         } elseif (is_string($config['content'])) {
+    //             $html .= $config['content'];
 
-            }
-        }
-        return $html;
-    }
+    //         }
+    //     }
+    //     return $html;
+    // }
 
     /**
      * Generates the closing tag for the element. Ex. </html>
@@ -291,16 +291,16 @@ class Component
      * @param  array  &$config [description]
      * @return [type]          [description]
      */
-    static private function closing(array &$config): string
-    {
-        $html = '';
-        $requiresEndTag = (isset($config['omit-end-tag']) && !$config['omit-end-tag']);
-        $omitEndTagNotSet = !isset($config['omit-end-tag']);
-        if ($requiresEndTag || $omitEndTagNotSet) {
-            $html .= '</'. $config['element'] .'>';
-        }
-        return $html;
-    }
+    // static private function closing(array &$config): string
+    // {
+    //     $html = '';
+    //     $requiresEndTag = (isset($config['omit-end-tag']) && !$config['omit-end-tag']);
+    //     $omitEndTagNotSet = !isset($config['omit-end-tag']);
+    //     if ($requiresEndTag || $omitEndTagNotSet) {
+    //         $html .= '</'. $config['element'] .'>';
+    //     }
+    //     return $html;
+    // }
 
     /**
      * @deprecated 2.0 The `make` method is deprecated and will be removed when 2.0 is 
@@ -372,10 +372,11 @@ class Component
     }
 
     /** 2.0 */
-    private $_element = '';
-    private $_extends = '';
-    private $_content;
-    private $_attributes = [];
+    protected $_element = '';
+    protected $_extends = '';
+    protected $_role = '';
+    protected $_content;
+    protected $_attributes = [];
 
     /**
      * Intercept all static calls.
@@ -425,11 +426,28 @@ class Component
     }
 
     public function compile(string ...$attributes): string
-    {
-        if (count($attributes) > 0) {
-            $this->attr(implode(', ', $attributes));
+    {        
+        $element = str_replace('_', '-', $this->_element);
+        $content = $this->compileContent();
+        $attributes = $this->compileAttributes();
+
+        if (self::isWebComponent()) {    
+            $opening = '<'. $this->_extends .' is="'. $element .'"' . $attributes .'>';
+            if ($this->hasEndTag()) {
+                return $opening . $content . '</'. $this->_extends .'>';            
+            }
+            return $opening;
         }
 
+        $opening = '<'. $element . $attributes .'>';
+        if ($this->hasEndTag()) {
+            return $opening . $content . '</'. $element .'>';            
+        }
+        return $opening;
+    }
+
+    private function compileContent()
+    {
         $content = null;
         if ($this->isComponent($this->_content)) {
             $content = $this->_content->compile();
@@ -448,28 +466,22 @@ class Component
                     : $maker->compile();
 
             }
-        }        
+        }  
+        return $content;
+    }
+
+    private function compileAttributes()
+    {
+        if (count($attributes) > 0) {
+            $this->attr($this->_role, implode(', ', $attributes));
+        }
 
         $attributes = '';
+
         if (count($this->_attributes) > 0) {
             $attributes = ' '. implode(' ', $this->_attributes);
         }
-
-        $element = str_replace('_', '-', $this->_element);
-
-        if (self::isWebComponent()) {    
-            $opening = '<'. $this->_extends .' is="'. $element .'"' . $attributes .'>';
-            if ($this->hasEndTag()) {
-                return $opening . $content . '</'. $this->_extends .'>';            
-            }
-            return $opening;
-        }
-
-        $opening = '<'. $element . $attributes .'>';
-        if ($this->hasEndTag()) {
-            return $opening . $content . '</'. $element .'>';            
-        }
-        return $opening;
+        return $attributes;
     }
 
     private function isWebComponent(): bool

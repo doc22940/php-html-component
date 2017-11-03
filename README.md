@@ -1,6 +1,6 @@
 # 8fold Component
 
-A fetherweight class for generating predefined HTML or autonymous web components.
+A featherweight class for generating predefined HTML or autonymous web components.
 
 While developing the user interfaces for our various online applications we managed to consolidate the basic logic for generating HTML elements, web components, and complete pages of content. This consolidation resulted in the creation of a single featherweight class we call 8fold Component, available on [Packagist](https://packagist.org/packages/8fold/php-html-component) and [GitHub](https://github.com/8fold/php-html-component).
 

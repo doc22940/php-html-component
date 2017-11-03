@@ -135,7 +135,7 @@ class Component
             $return = self::$realElement($content, $extends);
 
         }
-        return $return->compile();
+        return $return;
     }
 
     /**

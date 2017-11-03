@@ -59,7 +59,7 @@ Output:
 ```
 
 
-The only opinions made by the Component class the order of the primary identifying attributes for the element, in this order:
+The only opinion made by the Component class is the order of the primary identifying attributes for the element, in this order:
 
 1. element,
 2. extension (`is`),

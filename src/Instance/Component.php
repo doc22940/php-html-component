@@ -122,13 +122,15 @@ class Component
         if (count($this->_attributes) > 0) {
             $preparedAttributes = [];
             foreach ($this->_attributes as $attribute) {
-                list($key, $value) = explode(' ', $attribute, 2);
-                if ($key == $value) {
-                    $preparedAttributes[] = $key;
+                if (strlen($attribute) > 0) {
+                    list($key, $value) = explode(' ', $attribute, 2);
+                    if ($key == $value) {
+                        $preparedAttributes[] = $key;
 
-                } else {
-                    $preparedAttributes[] = $key .'="'. $value .'"';    
+                    } else {
+                        $preparedAttributes[] = $key .'="'. $value .'"';    
 
+                    }
                 }
             }
             $attributes = implode(' ', $preparedAttributes);

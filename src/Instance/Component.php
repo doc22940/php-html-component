@@ -16,6 +16,16 @@ class Component
     protected $_role = '';
     protected $_content;
     protected $_attributes = [];
+
+    /**
+     * @todo During the compile we whould be able to set a parameter on any Components
+     *       being processed. Namely, the component that is about to make it a direct
+     *       descendent. This would allow extensions, like 8fold Elements verify that
+     *       the descendent is valid prior to compilation and then do with that info.
+     *       what they will.
+     * @var null
+     */
+    protected $_parent = null;
     
     /**
      * Instantiates Component with the bare bones definition required.
@@ -57,6 +67,38 @@ class Component
         $this->_extends = $extends;
         $this->_content = $content;
     }
+
+    /**
+     * Assign the parent to the child.
+     * 
+     * @param  Component $component [description]
+     * @return [type]               [description]
+     */
+    private function parent(Component $component)
+    {
+        $this->_parent = $component;
+        return $this;
+    }
+
+    /**
+     * Get the parent for the child.
+     * 
+     * @return [type] [description]
+     */
+    protected function getParent(): ?Component
+    {
+        return $this->_parent;
+    }
+
+    /**
+     * Get the element name of the component.
+     * 
+     * @return [type] [description]
+     */
+    public function getElement(): string
+    {
+        return $this->_element;
+    }    
 
     /**
      * Terminating method that builds the component string and returns it.
@@ -194,25 +236,16 @@ class Component
     private function compileContent($contentToCompile): string
     {
         $content = '';
-        if ($this->isComponent($contentToCompile)) {
-            $content = $contentToCompile->compile();
+        if ($contentToCompile instanceof Component) {
+            $content = $contentToCompile->parent($this)->compile();
 
         } elseif (is_string($contentToCompile)) {
             $content = $contentToCompile;
 
         } elseif (is_array($contentToCompile)) {
-            $content = '';
             foreach ($contentToCompile as $maker) {
-                if (is_string($maker)) {
-                    $content .= $maker;
+                $content .= $this->compileContent($maker);
 
-                } elseif ($maker instanceof Component) {
-                    $content .= $maker->compile();
-
-                } elseif (is_array($maker)) {
-                    $content .= $this->compileContent($maker);
-
-                }
             }
         }  
         return $content;
@@ -267,18 +300,6 @@ class Component
     private function isWebComponent(): bool
     {
         return (strlen($this->_element) > 0 && strlen($this->_extends) > 0);
-    }
-
-    /**
-     * Whether the passed variable is an instance of Component.
-     * 
-     * @param  any     $test The variable to test.
-     * @return boolean       Whether the item under test is a Component instance.
-     * 
-     */
-    private function isComponent($test): bool
-    {
-        return is_a($test, Component::class);
     }
 
     /**

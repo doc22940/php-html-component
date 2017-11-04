@@ -8,14 +8,14 @@ use Eightfold\HtmlComponent\Component;
 
 class ComponentTest extends BaseTest
 {
-    public function testHtmlComponent2()
+    public function testHtmlComponent()
     {
         $expected = '<html id="my-component"></html>';
         $result = Component::html(true)->compile('id my-component');
         $this->assertEquality($expected, $result);
     }
 
-    public function testParagraphSpanComponent2()
+    public function testParagraphSpanComponent()
     {
         $expected = '<p><span>Hello, World!</span></p>';
         $result = Component::p(
@@ -24,14 +24,14 @@ class ComponentTest extends BaseTest
         $this->assertEquality($expected, $result);
     }
 
-    public function testButtonWebComponentExtension2()
+    public function testButtonWebComponentExtension()
     {
         $expected = '<button is="my-button">Save</button>';
         $result = Component::my_button('Save', 'button')->compile();
         $this->assertEquality($expected, $result);
     }
 
-    public function testPage2()
+    public function testPage()
     {
         $expected = '<html><head><title>Hello, World!</title><style></style></head><body><img src="http://example.com" alt="A picture of the world"><p is="my-component">Hello, World!</p><my-link href="http://example.com/domination">World Domination</my-link><p>Done!</p></body></html>';
         $result = 

@@ -42,7 +42,7 @@ class Component
      * 
      * @return Component         [description]
      */
-    public static function createInstance($content = true, string $element, string $extends =''): Component
+    final public static function createInstance($content = true, string $element, string $extends =''): Component
     {
         $instance = new static($content, $element, $extends);
         return $instance;
@@ -76,7 +76,9 @@ class Component
         $elementName = ($this->isWebComponent())
             ? $this->_extends
             : $this->getElementName();
+
         $attributes = $this->compileAttributes();
+
         $opening = '<'. $elementName;
         if (strlen($attributes) > 0) {
             $opening .= ' '. $attributes;
@@ -242,7 +244,10 @@ class Component
         if ($mergedAttributes > 0) {
             $preparedAttributes = [];
             foreach ($mergedAttributes as $key => $value) {
-                $preparedAttributes[] = $key .'="'. $value .'"';
+                var_dump($value);
+                if (strlen($value) > 0) {
+                    $preparedAttributes[] = $key .'="'. $value .'"';    
+                }
             }
             $attributes = implode(' ', $preparedAttributes);
         }

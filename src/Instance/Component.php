@@ -202,6 +202,21 @@ class Component
     }
 
     /**
+     * When attributes are stored they are stored as an associative array. This method
+     * gets them back as they were submitted.
+     * 
+     * @return [type] [description]
+     */
+    protected function getAttr(): array
+    {
+        $attr = [];
+        foreach ($this->_attributes as $key => $value) {
+            $attr[] = $key .' '. $value;
+        }
+        return $attr;
+    }
+
+    /**
      * Set a single attribute value for the component.
      *
      * Duplications will be overwritten.
@@ -210,8 +225,10 @@ class Component
      */
     private function addAttribute(string $attribute)
     {
-        list($key, $value) = explode(' ', $attribute, 2);
-        $this->_attributes[$key] = $value;
+        if (strlen($attribute) > 0) {
+            list($key, $value) = explode(' ', $attribute, 2);
+            $this->_attributes[$key] = $value;            
+        }
     }
 
     /**

@@ -227,7 +227,17 @@ class Component
     {
         if (strlen($attribute) > 0) {
             list($key, $value) = explode(' ', $attribute, 2);
-            $this->_attributes[$key] = $value;            
+            if ( ! isset($this->_attributes[$key])) {
+                $this->_attributes[$key] = '';
+            }
+
+            if (strlen($this->_attributes[$key]) > 0) {
+                $this->_attributes[$key] .= ' '. $value;
+
+            } else {
+                $this->_attributes[$key] .= $value;
+                
+            }
         }
     }
 
@@ -294,7 +304,6 @@ class Component
         if ($mergedAttributes > 0) {
             $preparedAttributes = [];
             foreach ($mergedAttributes as $key => $value) {
-                var_dump($value);
                 if (strlen($value) > 0) {
                     $preparedAttributes[] = $key .'="'. $value .'"';    
                 }

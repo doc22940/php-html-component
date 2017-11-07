@@ -202,21 +202,6 @@ class Component
     }
 
     /**
-     * When attributes are stored they are stored as an associative array. This method
-     * gets them back as they were submitted.
-     * 
-     * @return [type] [description]
-     */
-    protected function getAttr(): array
-    {
-        $attr = [];
-        foreach ($this->_attributes as $key => $value) {
-            $attr[] = $key .' '. $value;
-        }
-        return $attr;
-    }
-
-    /**
      * Set a single attribute value for the component.
      *
      * Duplications will be overwritten.
@@ -227,17 +212,7 @@ class Component
     {
         if (strlen($attribute) > 0) {
             list($key, $value) = explode(' ', $attribute, 2);
-            if ( ! isset($this->_attributes[$key])) {
-                $this->_attributes[$key] = '';
-            }
-
-            if (strlen($this->_attributes[$key]) > 0) {
-                $this->_attributes[$key] .= ' '. $value;
-
-            } else {
-                $this->_attributes[$key] .= $value;
-                
-            }
+            $this->_attributes[$key] = $value;            
         }
     }
 
@@ -304,8 +279,12 @@ class Component
         if ($mergedAttributes > 0) {
             $preparedAttributes = [];
             foreach ($mergedAttributes as $key => $value) {
-                if (strlen($value) > 0) {
-                    $preparedAttributes[] = $key .'="'. $value .'"';    
+                if (strlen($value) > 0 && $key == $value) {
+                    $preparedAttributes[] = $value;
+
+                } else {
+                    $preparedAttributes[] = $key .'="'. $value .'"';
+
                 }
             }
             $attributes = implode(' ', $preparedAttributes);

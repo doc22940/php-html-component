@@ -27,6 +27,11 @@ class Component
      */
     protected $_parent = null;
     
+    protected static function splitFirstSpace(string $string): array
+    {
+        return explode(' ', $string, 2);
+    }
+
     /**
      * Instantiates Component with the bare bones definition required.
      *
@@ -211,7 +216,7 @@ class Component
     private function addAttribute(string $attribute)
     {
         if (strlen($attribute) > 0) {
-            list($key, $value) = explode(' ', $attribute, 2);
+            list($key, $value) = self::splitFirstSpace($attribute);
             $this->_attributes[$key] = $value;            
         }
     }

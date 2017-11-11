@@ -12,7 +12,11 @@ namespace Eightfold\HtmlComponent\Instance;
 class Component
 {
     const openingFormat = "<%s%s>";
+
     const closingFormat = '</%s>';
+
+    // JSON %s:%s
+    // PHP assoc array '%s'=>'%s'
     const attributeFormat = '%s="%s"';
 
     protected $_element = '';
@@ -143,11 +147,6 @@ class Component
         return $opening . $content . $closing;
     }
 
-    private function wrapText(string $content, string $prefix = '', string $suffix = '')
-    {
-        return $prefix . $content . $suffix;
-    }
-
     /**
      * Print the compiled string for the component.
      * 
@@ -274,6 +273,7 @@ class Component
     {
         $return = '';
 
+        // Setup
         $prefixed = [];
         if ($this->isWebComponent()) {
             $prefixed['is'] = $this->getElementName();
@@ -285,14 +285,13 @@ class Component
 
         $attributes = $this->_attributes;
         if (count($prefixed) > 0) {
-            $attributes = array_merge($prefixed, $$attributes);
+            $attributes = array_merge($prefixed, $attributes);
         }
 
+        // Execute
         if (count($attributes) > 0) {
-            // TODO: Not sure I like this solution over a straight foreach loop. Harder
-            //       to read.
             $string = [];
-            array_walk($attributes, function ($value, $key) use (&$string) {
+            foreach ($attributes as $key => $value) {
                 if ($key == $value && strlen($value) > 0) {
                     $string[] = $value;
 
@@ -300,19 +299,10 @@ class Component
                     $string[] = sprintf(self::attributeFormat, $key, $value);
 
                 }
-            });
-            // $preparedAttributes = [];
-            // foreach ($mergedAttributes as $key => $value) {
-            //     if (strlen($value) > 0 && $key == $value) {
-            //         $preparedAttributes[] = $value;
-
-            //     } else {
-            //         $preparedAttributes[] = $key .'="'. $value .'"';
-
-            //     }
-            // }
+            }
             $return = implode(' ', $string);
         }
+
         return $return;
     }
 

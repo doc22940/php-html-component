@@ -11,6 +11,10 @@ namespace Eightfold\HtmlComponent\Instance;
  */
 class Component
 {
+    const openingFormat = "<%s%s>";
+    const closingFormat = '</%s>';
+    const attributeFormat = '%s="%s"';
+
     protected $_element = '';
     protected $_extends = '';
     protected $_role = '';
@@ -123,22 +127,25 @@ class Component
         $elementName = ($this->isWebComponent())
             ? $this->_extends
             : $this->getElementName();
-
         $attributes = $this->compileAttributes();
-
-        $opening = '<'. $elementName;
         if (strlen($attributes) > 0) {
-            $opening .= ' '. $attributes;
+            $attributes = ' '. $attributes;
         }
-        $opening .= '>';
 
-        $content = $this->compileContent($this->_content);
-        
+        $opening = sprintf(self::openingFormat, $elementName, $attributes);
+
         $closing = ($this->hasEndTag())
-            ? '</'. $elementName .'>'
+            ? sprintf(self::closingFormat, $elementName)
             : '';
 
+        $content = $this->compileContent($this->_content);
+
         return $opening . $content . $closing;
+    }
+
+    private function wrapText(string $content, string $prefix = '', string $suffix = '')
+    {
+        return $prefix . $content . $suffix;
     }
 
     /**
@@ -265,7 +272,7 @@ class Component
      */
     private function compileAttributes(): string
     {
-        $attributes = '';
+        $return = '';
 
         $prefixed = [];
         if ($this->isWebComponent()) {
@@ -276,25 +283,37 @@ class Component
             $prefixed['role'] = $this->_role;
         }
 
-        $mergedAttributes = $this->_attributes;
+        $attributes = $this->_attributes;
         if (count($prefixed) > 0) {
-            $mergedAttributes = array_merge($prefixed, $mergedAttributes);
+            $attributes = array_merge($prefixed, $$attributes);
         }
-        
-        if ($mergedAttributes > 0) {
-            $preparedAttributes = [];
-            foreach ($mergedAttributes as $key => $value) {
-                if (strlen($value) > 0 && $key == $value) {
-                    $preparedAttributes[] = $value;
+
+        if (count($attributes) > 0) {
+            // TODO: Not sure I like this solution over a straight foreach loop. Harder
+            //       to read.
+            $string = [];
+            array_walk($attributes, function ($value, $key) use (&$string) {
+                if ($key == $value && strlen($value) > 0) {
+                    $string[] = $value;
 
                 } else {
-                    $preparedAttributes[] = $key .'="'. $value .'"';
+                    $string[] = sprintf(self::attributeFormat, $key, $value);
 
                 }
-            }
-            $attributes = implode(' ', $preparedAttributes);
+            });
+            // $preparedAttributes = [];
+            // foreach ($mergedAttributes as $key => $value) {
+            //     if (strlen($value) > 0 && $key == $value) {
+            //         $preparedAttributes[] = $value;
+
+            //     } else {
+            //         $preparedAttributes[] = $key .'="'. $value .'"';
+
+            //     }
+            // }
+            $return = implode(' ', $string);
         }
-        return $attributes;
+        return $return;
     }
 
     /**

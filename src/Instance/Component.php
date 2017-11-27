@@ -2,110 +2,117 @@
 
 namespace Eightfold\HtmlComponent\Instance;
 
-/**
- * Component
- *
- * This is the string compiler. Because Component needs to allow for all sorts of
- * posibilities, it doesn't really assert any opinions how things *should* be.
- *
- */
-class Component
+use Eightfold\HtmlComponent\Interfaces\Compile;
+
+use Eightfold\HtmlComponent\Traits\HasParent;
+
+class Component implements Compile
 {
+    use HasParent;
+
+    const openingFormat = "<%s%s>";
+
+    const closingFormat = '</%s>';
+
+    // JSON %s:%s
+    // PHP assoc array '%s'=>'%s'
+    const attributeFormat = '%s="%s"';
+
     protected $_element = '';
     protected $_extends = '';
     protected $_role = '';
     protected $_content;
+    protected $_omitEndTag = false;
     protected $_attributes = [];
-
-    /**
-     * @todo During the compile we whould be able to set a parameter on any Components
-     *       being processed. Namely, the component that is about to make it a direct
-     *       descendent. This would allow extensions, like 8fold Elements verify that
-     *       the descendent is valid prior to compilation and then do with that info.
-     *       what they will.
-     * @var null
-     */
-    protected $_parent = null;
     
+    /**
+     * Return dictionary where index 0 is the continuous string appearing before a 
+     * space in the full string.
+     * 
+     * @param  string $string [description]
+     * @return [type]         [description]
+     */
+    protected static function splitFirstSpace(string $string): array
+    {
+        $return = explode(' ', $string, 2);
+        return $return;
+    }
+
     /**
      * Instantiates Component with the bare bones definition required.
      *
      * @param  bool|array|string $content (Default is true) True means the component
-     *                                    accepts content and will have a closing tag.
-     *                                    False means the component is self-closing and
-     *                                    will not have a closing tag. An array means
-     *                                    the component accepts content; the array may
-     *                                    contain strings, Component instances, or a 
-     *                                    combination of the two. A string means the
-     *                                    component accepts content, and you want that
-     *                                    string to *be* the content.
+     *             accepts content and will have a closing tag. False means the 
+     *             component is self-closing and will not have a closing tag. An array 
+     *             means the component accepts content; the array may contain strings, 
+     *             Component instances, or a combination of the two. A string means the
+     *             component accepts content, and you want that string to *be* the 
+     *             content.
      * @param  string            $element The text that will most likely be used in the
-     *                                    opening and closing tags. Ex. `html` becomes
-     *                                    `<html></html>`. If you use the main 
-     *                                    Component factory entry, it will be the 
-     *                                    method name.
+     *             opening and closing tags. Ex. `html` becomes `<html></html>`. If 
+     *             you use the main Component factory entry, it will be the method 
+     *             name.
      * @param  string            $extends If set, will be used in the opening and
-     *                                    closing tags, which will cause `element` to
-     *                                    placed in the `is` attribute of the 
-     *                                    component. Ex. `my-html` `html` becomes
-     *                                    `<html is="my-html"></html>`.
+     *             closing tags, which will cause `element` to placed in the `is` 
+     *             attribute of the component. Ex. `my-html` `html` becomes 
+     *             `<html is="my-html"></html>`.
      * 
      * @return Component         [description]
+     *
+     * @deprecated
      */
-    final public static function createInstance($content = true, string $element, string $extends =''): Component
+    final public static function createInstance(
+        $content = true, 
+        string $element, 
+        string $extends =''): Component
     {
         $instance = new static($content, $element, $extends);
         return $instance;
     }
 
     /**
-     * @see createInstance()
+     * Main element factory.
+     * 
+     * @param  string    $element    Name of the element to create.
+     * @param  array     $attributes Array of attribute keys and values.
+     * @param  [Compile] $content    One or more elements to place inside the elemnt.
+     * 
+     * @return Component             A Component instance with the specified element
+     *                               name, content, and attributes.
      */
-    private function __construct($content, string $element, string $extends = '')
+    public static function make(
+        string $element, 
+        array $attributes = [], 
+        Compile ...$content)
     {
-        $this->_element = $element;
-        $this->_extends = $extends;
-        $this->_content = $content;
+        $self = new static(...$content);
+        
+        $self->_element = $element;
+
+        return $self->attr(...$attributes);
     }
 
     /**
-     * Assign the parent to the child.
+     * Create instance with one or more Compile instances.
      * 
-     * @param  Component $component [description]
-     * @return [type]               [description]
+     * @param [type] $content [description]
      */
-    private function parent(Component $component)
+    protected function __construct(Compile ...$content)
     {
-        $this->_parent = $component;
+        $this->_content = $content;
+    }
+
+    public function omitEndTag(bool $omit = true): Component
+    {
+        $this->_omitEndTag = $omit;
         return $this;
     }
 
     /**
-     * Get the parent for the child.
+     * Build compoent string.
      * 
-     * @return [type] [description]
-     */
-    protected function getParent(): ?Component
-    {
-        return $this->_parent;
-    }
-
-    /**
-     * Get the element name of the component.
-     * 
-     * @return [type] [description]
-     */
-    public function getElement(): string
-    {
-        return $this->_element;
-    }    
-
-    /**
-     * Terminating method that builds the component string and returns it.
-     * 
-     * @param  strings $attributes See attr()
-     * 
-     * @return string              The compiled web component string.
+     * @param  [type] $attributes [description]
+     * @return [type]             [description]
      */
     public function compile(string ...$attributes): string
     {
@@ -118,80 +125,89 @@ class Component
         $elementName = ($this->isWebComponent())
             ? $this->_extends
             : $this->getElementName();
-
         $attributes = $this->compileAttributes();
-
-        $opening = '<'. $elementName;
         if (strlen($attributes) > 0) {
-            $opening .= ' '. $attributes;
+            $attributes = ' '. $attributes;
         }
-        $opening .= '>';
+
+        $opening = sprintf(self::openingFormat, $elementName, $attributes);
+
+        $closing = ($this->hasEndTag())
+            ? sprintf(self::closingFormat, $elementName)
+            : '';
 
         $content = $this->compileContent($this->_content);
-        
-        $closing = ($this->hasEndTag())
-            ? '</'. $elementName .'>'
-            : '';
 
         return $opening . $content . $closing;
     }
 
     /**
-     * Print the compiled string for the component.
+     * Use PHP print() to print the compiled string.
      * 
-     * @param  string $attributes See compile()
+     * @param  string $attributes One or more strings where the key comes before the
+     *                            first space. ex. `id some-id`
+     *                            
+     * @return int                The return of the print function.
      */
     public function print(string ...$attributes)
     {
-        print $this->compile(...$attributes);
+        return print $this->compile(...$attributes);
     }
 
     /**
-     * Print the compiled string for the component.
+     * Use PHP echo() to print the compiled string.
      * 
-     * @param  string $attributes See compile()
+     * @param string $attributes One or more strings where the key comes before the
+     *                           first space. ex. `id some-id`
      */
     public function echo(string ...$attributes)
     {
-        $this->print(...$attributes);
+        echo $this->compile(...$attributes);
     }
 
     /**
-     * Adds a role attribute as the first or second attribute depending on if the 
-     * component is an extension of something else.
+     * Get the element that was used to instantiate the component.
      * 
-     * @param  string    $role The value for the attribute.
-     * @return Component
+     * @return string Name of the element for the cmoponent.
+     */
+    public function getElement(): string
+    {
+        return $this->_element;
+    }
+
+    /**
+     * The element this component extends, if applicable.
+     * 
+     * @param  string $extends The name of the element this component extends.
+     * 
+     * @return Component    The instance the method was called on.
+     */
+    public function extends(string $extends): Component
+    {
+        $this->_extends = $extends;
+        return $this;
+    }
+
+    /**
+     * Set the role of the component in the application.
+     * 
+     * @param  string $role Value for the component attribute.
+     * 
+     * @return Component    The instance the method was called on.
      */
     public function role(string $role): Component
     { 
         $this->_role = $role;
         return $this;
-    }    
+    } 
 
     /**
-     * Overwrite the content of the component.
+     * Set the attributes of the instance.
      * 
-     * @param  [type] $content [description]
-     * @return [type]          [description]
-     *
-     * @todo Discuss further
-     */
-    private function content($content): Component
-    {
-        $this->_content = $content;
-        return $this;
-    }
-
-    /**
-     * Set any number of attributes to the component.
-     *
-     * Duplications will be overwritten.
-     * 
-     * @param  string $attributes The name of the attribute `id` followed by a single 
-     *                            space, followed by the value for the attribute. Ex.
-     *                            `id something` becomes `id="something"`.
-     * @return Component
+     * @param string $attributes One or more strings where the key comes before the
+     *                           first space. ex. `id some-id`
+     *                           
+     * @return Component    The instance the method was called on.
      */
     public function attr(string ...$attributes): Component
     {
@@ -202,25 +218,66 @@ class Component
     }
 
     /**
-     * Set a single attribute value for the component.
-     *
-     * Duplications will be overwritten.
+     * Convert string attributes to attribute dictionary.
      * 
-     * @param string $attribute See attr()
+     * @param string $attribute One string where the key comes before the first space.
+     *                          ex. `id some-id`
      */
     private function addAttribute(string $attribute)
     {
-        list($key, $value) = explode(' ', $attribute, 2);
-        $this->_attributes[$key] = $value;
+        if (strlen($attribute) > 0) {
+            list($key, $value) = self::splitFirstSpace($attribute);
+            $this->_attributes[$key] = $value;            
+        }
     }
 
     /**
-     * Kebab-case the element passed to the Component.
-     *
-     * Because we typically receive the element name from a function name, it will
-     * most likely be underscored not hyphenated.
+     * Convert attributes array to string to place within the element.
      * 
-     * @return string The kebab-cased element name.
+     * @return string The aggregated string of attributes. ex. id="some-id".
+     */
+    private function compileAttributes(): string
+    {
+        $return = '';
+
+        // Setup
+        $prefixed = [];
+        if ($this->isWebComponent()) {
+            $prefixed['is'] = $this->getElementName();
+        }
+
+        if (strlen($this->_role) > 0) {
+            $prefixed['role'] = $this->_role;
+        }
+
+        $attributes = $this->_attributes;
+        if (count($prefixed) > 0) {
+            $attributes = array_merge($prefixed, $attributes);
+        }
+
+        // Execute
+        if (count($attributes) > 0) {
+            $string = [];
+            foreach ($attributes as $key => $value) {
+                if ($key == $value && strlen($value) > 0) {
+                    $string[] = $value;
+
+                } else {
+                    $string[] = sprintf(self::attributeFormat, $key, $value);
+
+                }
+            }
+            $return = implode(' ', $string);
+        }
+
+        return $return;
+    }    
+
+    /**
+     * Convert element function name to valid web component string by replacing
+     * underscores with hyphens.
+     * 
+     * @return string String after replacing undescores with hyphens.
      */
     private function getElementName(): string
     {
@@ -228,19 +285,18 @@ class Component
     }
 
     /**
-     * Recursively build the component content string from the inside out.
-     *
-     * @param  any    $contentToCompile See createInstance() content.
-     * @return string                   The compiled content string.
+     * Recursively compile the content of the Component instance.
+     * 
+     * @param  array|Compile $contentToCompile One or more elements with the ability to
+     *                                         compile.
+     * 
+     * @return string The compiled string for the component's content.
      */
     private function compileContent($contentToCompile): string
     {
         $content = '';
-        if ($contentToCompile instanceof Component) {
+        if ($contentToCompile instanceof Compile) {
             $content = $contentToCompile->parent($this)->compile();
-
-        } elseif (is_string($contentToCompile)) {
-            $content = $contentToCompile;
 
         } elseif (is_array($contentToCompile)) {
             foreach ($contentToCompile as $maker) {
@@ -252,63 +308,17 @@ class Component
     }
 
     /**
-     * Build the component's list of attributes.
+     * Check if the component extends another web element or component.
      * 
-     * @return string The compiled string of attributes of the form id="something".
-     */
-    private function compileAttributes(): string
-    {
-        $attributes = '';
-
-        $prefixed = [];
-        if ($this->isWebComponent()) {
-            $prefixed['is'] = $this->getElementName();
-        }
-
-        if (strlen($this->_role) > 0) {
-            $prefixed['role'] = $this->_role;
-        }
-
-        $mergedAttributes = $this->_attributes;
-        if (count($prefixed) > 0) {
-            $mergedAttributes = array_merge($prefixed, $mergedAttributes);
-        }
-        
-        if ($mergedAttributes > 0) {
-            $preparedAttributes = [];
-            foreach ($mergedAttributes as $key => $value) {
-                var_dump($value);
-                if (strlen($value) > 0) {
-                    $preparedAttributes[] = $key .'="'. $value .'"';    
-                }
-            }
-            $attributes = implode(' ', $preparedAttributes);
-        }
-        return $attributes;
-    }
-
-    /**
-     * Whether this component is an extension of some other component.
-     *
-     * If this component is the extension of something else, the extension is used as
-     * the element name. Ex. $element = 'my-component', $extends = 'p' becomes
-     * <p is="my-component"></p> not <my-component is="p"></my-component>
-     * 
-     * @return boolean Whether both `element` and `extends` have been set on the 
-     *                 component.
+     * @return boolean Whether the component extends another web element or component.
      */
     private function isWebComponent(): bool
     {
         return (strlen($this->_element) > 0 && strlen($this->_extends) > 0);
     }
 
-    /**
-     * Whether this component should generate an end tag.
-     * 
-     * @return boolean Whether this component should generate an end tag.
-     */
     private function hasEndTag(): bool
     {
-        return ( ! is_bool($this->_content) || $this->_content);
+        return ( ! $this->_omitEndTag);
     }
 }

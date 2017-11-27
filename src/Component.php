@@ -3,6 +3,7 @@
 namespace Eightfold\HtmlComponent;
 
 use Eightfold\HtmlComponent\Instance\Component as InstanceComponent;
+use Eightfold\HtmlComponent\Instance\Text;
 
 /** 
  * Component
@@ -44,19 +45,26 @@ abstract class Component
      */
     public static function __callStatic(string $element, array $args)
     {
-        $content = true;
-        if (isset($args[0]) && is_bool($args[0])) {
-            $content = $args[0];
-
-        } elseif (isset($args[0])) {
-            $content = $args[0];
-
+        if ($element == 'text') {
+            if (isset($args[0])) {
+                return Text::make($args[0]);    
+            }
         }
+        return InstanceComponent::make($element, [], ...$args);
+        // die(var_dump($args));
+        // $content = true;
+        // if (isset($args[0]) && is_bool($args[0])) {
+        //     $content = $args[0];
 
-        $extends = (isset($args[1]))
-            ? $args[1]
-            : '';
+        // } elseif (isset($args[0])) {
+        //     $content = $args[0];
 
-        return InstanceComponent::createInstance($content, $element, $extends);
+        // }
+
+        // $extends = (isset($args[1]))
+        //     ? $args[1]
+        //     : '';
+
+        // return InstanceComponent::createInstance($content, $element, $extends);
     }
 }

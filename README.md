@@ -16,8 +16,12 @@ $ composer require 8fold/php-html-component
 
 Make a static function call to the Component class. The name of the function will most likely become the name of the component (because function names should not contain hyphens, use underscores instead). The first argument will be its content; you can set this to `false` for self-closing elements. The second argument is optional and will become an extension.
 
+Note: 8fold Component is strictly typed. Therefore, all content passed into 8fold Component must implement the Compile interface, which means a string literal will fail unless instantiated as `Component::text`.
+
 ```php
-Component::my_component('Hello, World!')->compile();
+Component::my_component(
+    Component::text('Hello, World!')
+  )->compile();
 ```
 
 Output:
@@ -31,7 +35,10 @@ Output:
 Extending a known element:
 
 ```php
-Component::my_component('Hello, World!', 'p')->compile();
+Component::my_component(
+    Component::text('Hello, World!')
+  )->extends('p')
+  ->compile();
 ```
 
 Output:
@@ -45,7 +52,9 @@ Output:
 Adding attributes:
 
 ```php
-Component::my_component('Hello, World!', 'p')
+Component::my_component(
+    Component::text('Hello, World!')
+  )->extends('p')
   ->attr('id something-unique')
   ->compile();
 ```
@@ -69,7 +78,7 @@ After that, the attributes will appear in the order in which they are received. 
 
 ## Extending
 
-The Component class is designed to be extended in order to reduce complexity to create more compound elements and components. It is recommended you extend both `Component.php` (using it as a factory) and `Instance/Component.php`. The root Component class is essentially a factory (could be viewed as a facade as well), which creates and returns a Component instance with the given specifications. 
+The Component class is designed to be extended in order to reduce complexity in order to create more compound elements and components. It is recommended you extend both `Component.php` (using it as a factory) and `Instance/Component.php` (using it as a base class). The root Component class is essentially a factory (could be viewed as a facade as well), which creates and returns a Component instance with the given specifications. 
 
 When creating an extension, we reccomend duplicating root `Component` entry point, then creating a list of valid elements for your extension and calling parent if it's not available (we found it to be the easiest way to handle inheritance and the magic methods). This way developers using your extension will always get a Component back.
 

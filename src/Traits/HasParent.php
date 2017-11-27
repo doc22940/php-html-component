@@ -2,6 +2,8 @@
 
 namespace Eightfold\HtmlComponent\Traits;
 
+use Eightfold\HtmlComponent\Instance\Component;
+
 use Eightfold\HtmlComponent\Interfaces\Compile;
 
 trait HasParent

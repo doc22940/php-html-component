@@ -45,8 +45,6 @@ abstract class Component
      */
     public static function __callStatic(string $element, array $args)
     {
-        if (isset($args[0]) && is_bool($args[0])) {
-            $content = $args[0];
         if ($element == 'text') {
             if (isset($args[0])) {
                 return Text::make($args[0]);    

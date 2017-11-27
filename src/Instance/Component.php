@@ -25,6 +25,13 @@ class Component implements Compile
     protected $_omitEndTag = false;
     protected $_attributes = [];
     
+    /**
+     * Return dictionary where index 0 is the continuous string appearing before a 
+     * space in the full string.
+     * 
+     * @param  string $string [description]
+     * @return [type]         [description]
+     */
     protected static function splitFirstSpace(string $string): array
     {
         $return = explode(' ', $string, 2);

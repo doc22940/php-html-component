@@ -11,21 +11,6 @@ use Eightfold\HtmlComponent\Instance\Text;
  * A featherweight library for generating strings for HTML, web components, and (most
  * likely) XML.
  *
- * Component::element('Hello, World!', 'p')->attr('attr-name value')->compile()
- * 
- * Component::element('Hello, World!', 'p')->attr('attr-name value')->print()
- *
- * Component::element('Hello, World!', 'p')->attr('attr-name value')->echo()
- *
- * Component::element('Hello, World!', 'p')->echo('attr-name value')
- *
- * Output:
- *
- * <p is="element" attr-name="value">Hello, World!</p>
- *
- *
- * Note: compile() will return the string, without printing.
- *
  * @see Eightfold\HtmlComponent\Instance\Component
  * 
  */
@@ -51,20 +36,5 @@ abstract class Component
             }
         }
         return InstanceComponent::make($element, [], ...$args);
-        // die(var_dump($args));
-        // $content = true;
-        // if (isset($args[0]) && is_bool($args[0])) {
-        //     $content = $args[0];
-
-        // } elseif (isset($args[0])) {
-        //     $content = $args[0];
-
-        // }
-
-        // $extends = (isset($args[1]))
-        //     ? $args[1]
-        //     : '';
-
-        // return InstanceComponent::createInstance($content, $element, $extends);
     }
 }

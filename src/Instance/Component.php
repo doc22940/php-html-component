@@ -39,38 +39,6 @@ class Component implements Compile
     }
 
     /**
-     * Instantiates Component with the bare bones definition required.
-     *
-     * @param  bool|array|string $content (Default is true) True means the component
-     *             accepts content and will have a closing tag. False means the 
-     *             component is self-closing and will not have a closing tag. An array 
-     *             means the component accepts content; the array may contain strings, 
-     *             Component instances, or a combination of the two. A string means the
-     *             component accepts content, and you want that string to *be* the 
-     *             content.
-     * @param  string            $element The text that will most likely be used in the
-     *             opening and closing tags. Ex. `html` becomes `<html></html>`. If 
-     *             you use the main Component factory entry, it will be the method 
-     *             name.
-     * @param  string            $extends If set, will be used in the opening and
-     *             closing tags, which will cause `element` to placed in the `is` 
-     *             attribute of the component. Ex. `my-html` `html` becomes 
-     *             `<html is="my-html"></html>`.
-     * 
-     * @return Component         [description]
-     *
-     * @deprecated
-     */
-    final public static function createInstance(
-        $content = true, 
-        string $element, 
-        string $extends =''): Component
-    {
-        $instance = new static($content, $element, $extends);
-        return $instance;
-    }
-
-    /**
      * Main element factory.
      * 
      * @param  string    $element    Name of the element to create.

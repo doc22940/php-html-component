@@ -8,16 +8,16 @@ use Eightfold\HtmlComponent\Interfaces\Compile;
 
 trait HasParent
 {
-    protected $_parent = null;
+    protected $parent = null;
 
     protected function getParent(): ?Component
     {
-        return $this->_parent;
+        return $this->parent;
     }
 
     public function parent(Compile $component)
     {
-        $this->_parent = $component;
+        $this->parent = $component;
         return $this;
     }
 }

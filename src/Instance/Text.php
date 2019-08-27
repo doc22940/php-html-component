@@ -12,7 +12,7 @@ class Text implements Compile
 
     private $content = '';
 
-    public static function make(string $content)
+    static public function make(string $content)
     {
         return new Text($content);
     }

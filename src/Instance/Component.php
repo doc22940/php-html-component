@@ -183,57 +183,6 @@ class Component implements Compile
         return $content;
     }
 
-    private function compileAttributes(): string
-    {
-        $return = '';
-
-        // Setup
-        $prefixed = [];
-        if ($this->isWebComponent()) {
-            $prefixed['is'] = $this->getElementName();
-        }
-
-        if (strlen($this->role) > 0) {
-            $prefixed['role'] = $this->role;
-        }
-
-        $attributes = $this->attributes;
-        if (count($prefixed) > 0) {
-            $attributes = array_merge($prefixed, $attributes);
-        }
-
-        // Execute
-        if (count($attributes) > 0) {
-            $string = [];
-            foreach ($attributes as $key => $value) {
-                if ($key == $value && strlen($value) > 0) {
-                    $string[] = $value;
-
-                } else {
-                    $string[] = sprintf(self::attributeFormat, $key, $value);
-
-                }
-            }
-            $return = implode(' ', $string);
-        }
-        return $return;
-    }
-
-    private function compileContent($contentToCompile): string
-    {
-        $content = '';
-        if ($contentToCompile instanceof Compile) {
-            $content = $contentToCompile->parent($this)->compile();
-
-        } elseif (is_array($contentToCompile)) {
-            foreach ($contentToCompile as $maker) {
-                $content .= $this->compileContent($maker);
-
-            }
-        }  
-        return $content;
-    }
-
     public function print(string ...$attributes)
     {
         return print $this->compile(...$attributes);

@@ -1,6 +1,7 @@
 {
     "name": "8fold/php-html-component",
     "description": "A featherweight class capable of delivering a single web component, element, or entire page.",
+    "version": "3.0.2",
     "keywords": [],
     "homepage": "https://github.com/8fold/html-php-component",
     "type": "library",

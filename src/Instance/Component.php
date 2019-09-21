@@ -12,10 +12,6 @@ class Component implements Compile
 
     const openingFormat = "<%s%s>";
 
-    const closingFormat = '</%s>';
-
-    const attributeFormat = '%s="%s"';
-
     protected $element = '';
 
     protected $extends = '';
@@ -37,14 +33,6 @@ class Component implements Compile
         return $self->attr(...$attributes);
     }
 
-    static protected function splitFirstSpace(string $string): array
-    {
-        // return array where 
-        // [0] is string before first space and
-        // [1] is string after first space
-        return explode(' ', $string, 2);
-    }
-
     protected function __construct(Compile ...$content)
     {
         $this->content = $content;
@@ -56,19 +44,9 @@ class Component implements Compile
         return $this;
     }
 
-    private function hasEndTag(): bool
-    {
-        return ( ! $this->omitEndTag);
-    }
-
     public function getElement(): string
     {
         return $this->element;
-    }
-
-    private function getElementName(): string
-    {
-        return str_replace('_', '-', $this->element);
     }
 
     public function extends(string $extends): Component
@@ -86,86 +64,76 @@ class Component implements Compile
     { 
         $this->role = $role;
         return $this;
-    } 
+    }
 
     public function attr(string ...$attributes): Component
     {
         foreach ($attributes as $attribute) {
-            $this->addAttribute($attribute);
+            if (strlen($attribute) > 0) {
+                // return array where 
+                // [0] is string before first space and
+                // [1] is string after first space
+                list($key, $value) = $this->splitFirstSpace($attribute);
+                $this->attributes[$key] = $value;            
+            }
         }
         return $this;
     }
 
-    private function addAttribute(string $attribute)
+    protected function splitFirstSpace(string $attribute): array
     {
-        if (strlen($attribute) > 0) {
-            list($key, $value) = self::splitFirstSpace($attribute);
-            $this->attributes[$key] = $value;            
-        }
+        return explode(' ', $attribute, 2);
     }
 
     public function compile(string ...$attributes): string
     {
-        if (count($attributes) > 0) {
-            $this->attr(...$attributes);
+        $this->attr(...$attributes);
+
+        $elementName = str_replace('_', '-', $this->element);
+        if ($this->isWebComponent()) {
+            $this->attr("is {$elementName}");
+            $elementName = $this->extends;
         }
 
-        // opening:
-        // <element/extends attributes> content </element/extends>
-        $elementName = ($this->isWebComponent())
-            ? $this->extends
-            : $this->getElementName();
-
+        if (strlen($this->role) > 0) {
+            $this->attr("role {$this->role}");
+        }
+        
         $attributes = $this->compileAttributes();
         if (strlen($attributes) > 0) {
             $attributes = ' '. $attributes;
         }
 
-        $opening = sprintf(self::openingFormat, $elementName, $attributes);
+        $opening = "<{$elementName}{$attributes}>";
 
         $closing = ($this->hasEndTag())
-            ? sprintf(self::closingFormat, $elementName)
+            ? "</{$elementName}>"
             : '';
 
         $content = $this->compileContent($this->content);
 
         return $opening . $content . $closing;
     }
+
+    private function hasEndTag(): bool
+    {
+        return ( ! $this->omitEndTag);
+    }
     
     private function compileAttributes(): string
     {
-        $return = '';
+        $string = [];
+        foreach ($this->attributes as $key => $value) {
+            if ($key == $value && strlen($value) > 0) {
+                // required=required => required
+                $string[] = $value;
 
-        // Setup
-        $prefixed = [];
-        if ($this->isWebComponent()) {
-            $prefixed['is'] = $this->getElementName();
-        }
+            } else {
+                $string[] = "{$key}=\"{$value}\"";
 
-        if (strlen($this->role) > 0) {
-            $prefixed['role'] = $this->role;
-        }
-
-        $attributes = $this->attributes;
-        if (count($prefixed) > 0) {
-            $attributes = array_merge($prefixed, $attributes);
-        }
-
-        // Execute
-        if (count($attributes) > 0) {
-            $string = [];
-            foreach ($attributes as $key => $value) {
-                if ($key == $value && strlen($value) > 0) {
-                    $string[] = $value;
-
-                } else {
-                    $string[] = sprintf(self::attributeFormat, $key, $value);
-
-                }
             }
-            $return = implode(' ', $string);
         }
-        return $return;
+        return implode(' ', $string);
     }
 
     private function compileContent($contentToCompile): string
@@ -191,5 +159,10 @@ class Component implements Compile
     public function echo(string ...$attributes)
     {
         echo $this->compile(...$attributes);
-    }    
+    }
+
+    public function __toString()
+    {
+        return $this->compile();
+    }   
 }

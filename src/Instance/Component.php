@@ -15,25 +15,25 @@ class Component implements Compile
     protected $element = '';
 
     protected $extends = '';
-    
+
     protected $role = '';
-    
+
     protected $content;
-    
+
     protected $omitEndTag = false;
-    
+
     protected $attributes = [];
 
     static public function make(string $element, array $attributes = [], Compile ...$content)
     {
         $self = new static(...$content);
-        
+
         $self->element = $element;
 
         return $self->attr(...$attributes);
     }
 
-    protected function __construct(Compile ...$content)
+    public function __construct(Compile ...$content)
     {
         $this->content = $content;
     }
@@ -61,7 +61,7 @@ class Component implements Compile
     }
 
     public function role(string $role): Component
-    { 
+    {
         $this->role = $role;
         return $this;
     }
@@ -70,11 +70,11 @@ class Component implements Compile
     {
         foreach ($attributes as $attribute) {
             if (strlen($attribute) > 0) {
-                // return array where 
+                // return array where
                 // [0] is string before first space and
                 // [1] is string after first space
                 list($key, $value) = $this->splitFirstSpace($attribute);
-                $this->attributes[$key] = $value;            
+                $this->attributes[$key] = $value;
             }
         }
         return $this;
@@ -85,6 +85,7 @@ class Component implements Compile
         return explode(' ', $attribute, 2);
     }
 
+    // unfold
     public function compile(string ...$attributes): string
     {
         $this->attr(...$attributes);
@@ -98,7 +99,7 @@ class Component implements Compile
         if (strlen($this->role) > 0) {
             $this->attr("role {$this->role}");
         }
-        
+
         $attributes = $this->compileAttributes();
         if (strlen($attributes) > 0) {
             $attributes = ' '. $attributes;
@@ -119,7 +120,7 @@ class Component implements Compile
     {
         return ( ! $this->omitEndTag);
     }
-    
+
     private function compileAttributes(): string
     {
         $string = [];
@@ -147,7 +148,7 @@ class Component implements Compile
                 $content .= $this->compileContent($maker);
 
             }
-        }  
+        }
         return $content;
     }
 
@@ -164,5 +165,5 @@ class Component implements Compile
     public function __toString()
     {
         return $this->compile();
-    }   
+    }
 }

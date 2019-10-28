@@ -56,5 +56,5 @@ class ComponentTest extends BaseTest
                   )
             )->compile();
         $this->assertEquality($expected, $result);
-    } 
+    }
 }
